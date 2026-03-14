@@ -1,5 +1,20 @@
 import yt_dlp
 
+
+def format_date(raw_date):
+    if raw_date and len(raw_date) == 8:
+        return f"{raw_date[6:8]}/{raw_date[4:6]}/{raw_date[:4]}"
+    return "Unknown"
+
+def shorten_text(text, length = 200):
+    if not text:
+        return "No Description"
+
+    if len(text) <= length:
+        return text
+    
+    return text[:length] + "..."
+
 def get_youtube_metadata(url):
     ydl_opts = {
         'quiet': True,
@@ -7,21 +22,17 @@ def get_youtube_metadata(url):
         'dump_single_json': True,
     }
 
-    
-
     try:
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             # extarct_info returns a dictionary
             info = ydl.extract_info(url, download=False)
-            raw_date = info.get('upload_date')
             metadata = {
                 "Title": info.get('title'),
                 "views": info.get('view_count'),
-                "Description": (info.get('description') or "No description")[:200] + "...",
+                "Description": shorten_text(info.get('description')),
                 "Author": info.get('uploader'),
                 "Duration (Seconds)": info.get('duration'),
-                
-                "Upload Date": f"{raw_date[6:8]}/{raw_date[4:6]}/{raw_date[:4]}" if raw_date else "Unknown"
+                "Upload Date": format_date(info.get('upload_date')),
             }
             return metadata
     except Exception as e:
