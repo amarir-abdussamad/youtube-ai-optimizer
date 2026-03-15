@@ -10,19 +10,25 @@ def build_prompt(metadata, transcript):
     return f"""
 You are a YouTube content expert.
 
-Here is a YouTube video:
-- Title: {metadata['Title']}
-- Author: {metadata['Author']}
-- Views: {metadata['views']}
-- Description: {metadata['Description']}
+VIDEO METADATA:
+- Title: {metadata.get('Title', 'Unknown')}
+- Author: {metadata.get('Author', 'Unknown')}
+- Views: {metadata.get('views', 'Unknown')}
+- Description: {metadata.get('Description', 'Unknown')}
 
-Transcript:
+Video TRANSCRIPT:
 {transcript}
 
-Please provide:
-1. Five catchy title suggestions
-2. One optimized description (max 200 words)
-3. Three thumbnail ideas (describe visuals)
+TASKS:
+
+1. Generate 5 catchy YouTube titles optimized for high click-through rates (CTR).
+2. Write one SEO optimized description (max 200 words)
+3. Suggest 3 thumbnails ideas (describe visuals and text)
+
+Respond with clear sections:
+Titles:
+Descriptions:
+Thumbnails:
 """
 
 def analyze_video(metadata, transcript):
@@ -30,14 +36,19 @@ def analyze_video(metadata, transcript):
         print("API key not found!")
         return None
     
-    client = Groq(api_key=os.getenv("GROQ_API_KEY"))
-    response = client.chat.completions.create(
-        model="llama-3.3-70b-versatile",
-        messages=[
-            {"role": "user", "content": build_prompt(metadata, transcript)}
-        ]
-    )
-    return response.choices[0].message.content
+    client = Groq(api_key=api_key)
+    try:
+        response = client.chat.completions.create(
+            model="llama-3.3-70b-versatile",
+            messages=[
+                {"role": "user", "content": build_prompt(metadata, transcript)}
+            ]
+        )
+        return response.choices[0].message.content
+
+    except Exception as e:
+        print(f"Error calling Groq API: {e}")
+        return None
 
 
 if __name__ == "__main__":
